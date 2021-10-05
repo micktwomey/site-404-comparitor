@@ -79,10 +79,15 @@ class PageCache:
         if cache_path.is_file():
             try:
                 with cache_path.open("rb") as fp:
-                    return pickle.load(fp)
+                    page: Page
+                    page = pickle.load(fp)
+                    if page.status_code != 200:
+                        raise ValueError(
+                            f"Got a non-200 from the cache for {url}, will retry page"
+                        )
             except Exception as e:
                 LOG.exception(
-                    f"Problem loading {cache_path=}: {e}. Deleting cache entry and re-downloading."
+                    f"Problem loading {cache_path=} for {url=}: {e}. Deleting cache entry and re-downloading."
                 )
                 cache_path.unlink()
 
